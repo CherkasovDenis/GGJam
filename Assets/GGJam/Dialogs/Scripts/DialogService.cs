@@ -48,11 +48,12 @@ namespace GGJam.Dialogs.Scripts
 
 		public void HideWindow()
 		{
-			_canvasGroup.DOFade(0f, 1f).OnComplete(() =>
-			{
-				gameObject.SetActive(false);
-				_showed = false;
-			});
+			_canvasGroup.DOFade(0f, 1f)
+				.OnComplete(() =>
+				{
+					gameObject.SetActive(false);
+					_showed = false;
+				});
 		}
 
 		public async UniTask ShowDialog(string dialogKey)
@@ -67,11 +68,33 @@ namespace GGJam.Dialogs.Scripts
 			if (!_showed)
 				ShowWindow();
 
-			var sprite = GetSprite(dialog.Character);
-			_character.sprite = sprite;
-			_dialog.text = dialog.Text;
+			SetSprite(dialog);
+
+			SetText(dialog);
 
 			await _nextButton.OnClickAsync();
+		}
+
+		private void SetSprite(Dialog dialog)
+		{
+			var sprite = GetSprite(dialog.Character);
+			_character.sprite = sprite;
+		}
+
+		private void SetText(Dialog dialog)
+		{
+			_dialog.DOFade(0, .2f)
+				.OnComplete(() =>
+				{
+					_dialog.text = dialog.Text;
+					_dialog.DOFade(1, .2f)
+					.OnComplete(() =>
+					{
+						_dialog.transform.DOPunchScale(0.01f * Vector3.one,
+							.2f,
+							1);
+					});
+				});
 		}
 
 		private Sprite GetSprite(Character key)
