@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using GGJam.Childhood.Scripts.Mother;
 using GGJam.Dialogs.Scripts;
 using System.Threading;
 using VContainer;
@@ -10,9 +11,15 @@ namespace GGJam.ChildHood.Scripts
 	{
 		[Inject]
 		private readonly DialogService _dialogService;
+		[Inject]
+		private readonly MotherSong _motherSong;
+		
+
 
 		public async UniTask StartAsync(CancellationToken cancellation = new CancellationToken())
 		{
+			await _motherSong.RunMiniGame();
+			
 			await UniTask.WaitForSeconds(2, cancellationToken: cancellation);
 
 			await _dialogService.ShowDialog("loh_1");
