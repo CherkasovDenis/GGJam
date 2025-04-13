@@ -1,8 +1,8 @@
 {
   "dependencies": {
     "com.alicanhasirci.texttween": "https://github.com/AlicanHasirci/TextTween.git",
+    "com.coffee.ui-particle": "https://github.com/mob-sakai/ParticleEffectForUGUI.git",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
-    "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer",
     "com.unity.collab-proxy": "2.7.1",
     "com.unity.feature.2d": "2.0.1",
     "com.unity.ide.rider": "3.0.36",
@@ -15,6 +15,7 @@
     "com.unity.ugui": "2.0.0",
     "com.unity.visualscripting": "1.9.6",
     "com.vd3v.sprite-swap-morph": "https://github.com/V0odo0/Sprite-Swap-Morph.git",
+    "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer",
     "com.unity.modules.accessibility": "1.0.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",

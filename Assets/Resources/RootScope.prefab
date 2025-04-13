@@ -138,6 +138,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4392729114123778662}
     m_Modifications:
+    - target: {fileID: 4944160505288052393, guid: d2f9b6336568fe648951dfacd65cb368, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 6377885867844531202, guid: d2f9b6336568fe648951dfacd65cb368, type: 3}
       propertyPath: m_Name
       value: Dialog

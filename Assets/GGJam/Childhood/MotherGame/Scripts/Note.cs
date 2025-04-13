@@ -51,8 +51,8 @@ public class Note : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
 	{
 		transform.DOScale(Vector3.one, .3f).SetEase(Ease.OutQuad);
 		isDragging = false;
-		OnNoteReleased?.Invoke(this);
 		StartRandomFlight();
+		OnNoteReleased?.Invoke(this);
 	}
 
 	public void StartRandomFlight()
