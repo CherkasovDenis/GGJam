@@ -2,6 +2,8 @@
 using DG.Tweening;
 using GGJam.Dialogs.Scripts;
 using GGJam.Scripts;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -106,18 +108,24 @@ namespace GGJam.Childhood.OutDoor.Scripts
 			dragon.image.DOFade(1, 1f);
 			dragonBack.gameObject.SetActive(true);
 			dragonBack.DOFade(1, 1f);
-			_dialogService.ShowDialog(21,true).Forget();
+			_dialogService.ShowDialog(21, true).Forget();
 
 			hitDrqagon.transform.DOScale(Vector3.one * 1.1f, .4f).SetLoops(-1, LoopType.Yoyo);
-			
 
-			await UniTask.WhenAny(HitTheDragon(), HitTheDragonCall());
+			var cancel = new CancellationTokenSource();
+			try
+			{
+				await UniTask.WhenAny(HitTheDragon(), HitTheDragonCall(cancel.Token));
+			}
+			catch (Exception _) { }
+
 			dragon.interactable = false;
 			dragon.image.DOFade(0, 1f);
 			hitDrqagon.DOFade(0, 1);
 
-			bidDog.DOFade(1, 1f);
+			await bidDog.DOFade(1, 1f);
 
+			_dialogService.ShowWindow();
 			if (_hellModel.SendToHell)
 			{
 				await KillDog();
@@ -129,23 +137,28 @@ namespace GGJam.Childhood.OutDoor.Scripts
 
 			// await _mainTask.Task;
 
-			async UniTask HitTheDragonCall()
+			async UniTask HitTheDragonCall(CancellationToken cancelToken)
 			{
-				await UniTask.WaitForSeconds(2);
+				await UniTask.WaitForSeconds(3, cancellationToken: cancelToken);
 				_dialogService.ShowDialog(22, true).Forget();
-				await UniTask.WaitForSeconds(2);
+				await UniTask.WaitForSeconds(3, cancellationToken: cancelToken);
 				_dialogService.ShowDialog(23, true).Forget();
-				await UniTask.WaitForSeconds(2);
+				await UniTask.WaitForSeconds(3, cancellationToken: cancelToken);
 				_dialogService.ShowDialog(24, true).Forget();
-				await UniTask.WaitForSeconds(2);
+				await UniTask.WaitForSeconds(3, cancellationToken: cancelToken);
 				_dialogService.ShowDialog(25, true).Forget();
-
 				_hellModel.SendToHell = false;
 			}
 
 			async UniTask HitTheDragon()
 			{
+				_dialogService._nextButton.image.raycastTarget = false;
 				await dragon.OnClickAsync();
+				cancel.Cancel();
+				cancel.Dispose();
+
+				_dialogService.HideWindow();
+				_dialogService._nextButton.image.raycastTarget = true;
 				_hellModel.SendToHell = true;
 				dogHit.Play();
 				await UniTask.WaitForSeconds(.65f);
