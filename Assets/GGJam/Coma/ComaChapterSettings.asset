@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf203d56ab2140018d2efa8e56bc3329, type: 3}
+  m_Name: ComaChapterSettings
+  m_EditorClassIdentifier: 
+  _chapters:
+  - {fileID: 11400000, guid: ef81df65d4d13ad4491a69cd5e39c429, type: 2}
+  - {fileID: 11400000, guid: 135bee353aa826c48b954d51407b1cd7, type: 2}
+  - {fileID: 11400000, guid: 4eba668e38163a940a2467e9acac0f68, type: 2}
+  - {fileID: 11400000, guid: 647f0ec5ea4ae1e4aa116f7b5123b972, type: 2}
