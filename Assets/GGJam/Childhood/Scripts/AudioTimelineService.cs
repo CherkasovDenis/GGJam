@@ -1,495 +1,410 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System;
 using System.Linq;
+using UnityEngine;
 
 /// <summary>
-/// Сервис для воспроизведения аудио на определенных временных метках с общей очередью
+///     Сервис для воспроизведения аудио на определенных временных метках с общей очередью
 /// </summary>
 public class AudioTimelineService : MonoBehaviour
 {
-    [System.Serializable]
-    public class TimeMarker
-    {
-        public float timeInSeconds;
-        [HideInInspector] public bool triggered = false;
-    }
+	public event Action<Note> NotePlay;
 
-    [System.Serializable]
-    public class QueuedAudioClip
-    {
-        public AudioClip clip;
-        public float volume;
-        public int offsetMs;
-    }
+	[System.Serializable]
+	public class TimeMarker
+	{
+		public float timeInSeconds;
+		[HideInInspector]
+		public bool triggered = false;
+	}
 
-    [Header("Main Audio")]
-    public AudioSource mainAudioSource;
-    public AudioClip mainTrack;
+	[Header("Main Audio")]
+	public AudioSource mainAudioSource;
+	public AudioClip mainTrack;
 
-    [Header("Time Markers")]
-    public List<TimeMarker> timeMarkers = new List<TimeMarker>();
+	[Header("Time Markers")]
+	public List<TimeMarker> timeMarkers = new List<TimeMarker>();
 
-    [Header("Settings")]
-    public bool autoStart = true;
-    public bool usePooling = true;
-    public int poolSize = 8;
-    public bool debugMode = false;
+	[Header("Settings")]
+	public bool autoStart = true;
+	public bool usePooling = true;
+	public int poolSize = 8;
+	public bool debugMode = false;
+	private float currentPlaybackTime = 0f;
+	private float startTime;
 
-    // Общая очередь для всех клипов
-    private Queue<QueuedAudioClip> clipQueue = new Queue<QueuedAudioClip>();
+	private readonly List<AudioSource> audioSourcePool = new List<AudioSource>();
 
-    private List<AudioSource> audioSourcePool = new List<AudioSource>();
-    private float startTime;
-    private int lastTriggeredMarkerIndex = -1;
-    private float currentPlaybackTime = 0f;
+	// Общая очередь для всех клипов
+	private readonly Queue<Note> clipQueue = new Queue<Note>();
 
-    #region Unity Lifecycle
+	#region Unity Lifecycle
 
-    private void Awake()
-    {
-        InitializeService();
-    }
+	private void Awake()
+	{
+		InitializeService();
+	}
 
-    private void Start()
-    {
-        if (autoStart && mainTrack != null)
-        {
-            PlayMainTrack();
-        }
-    }
+	private void Start()
+	{
+		if (autoStart && mainTrack != null)
+			PlayMainTrack();
+	}
 
-    private void Update()
-    {
-        if (!mainAudioSource.isPlaying) return;
-        currentPlaybackTime = GetCurrentPlaybackTime();
-        CheckTimeMarkers();
+	private void Update()
+	{
+		if (!mainAudioSource.isPlaying)
+			return;
 
-    }
+		currentPlaybackTime = GetCurrentPlaybackTime();
+		CheckTimeMarkers();
+	}
 
-    #endregion
+	#endregion
 
-    #region Initialization
+	#region Initialization
 
-    private void InitializeService()
-    {
-        // Инициализируем основной аудиоисточник
-        if (mainAudioSource == null)
-        {
-            mainAudioSource = GetComponent<AudioSource>();
-            if (mainAudioSource == null)
-            {
-                mainAudioSource = gameObject.AddComponent<AudioSource>();
-            }
-        }
+	private void InitializeService()
+	{
+		// Инициализируем основной аудиоисточник
+		if (mainAudioSource == null)
+		{
+			mainAudioSource = GetComponent<AudioSource>();
+			if (mainAudioSource == null)
+				mainAudioSource = gameObject.AddComponent<AudioSource>();
+		}
 
-        // Назначаем основной трек
-        if (mainTrack != null)
-        {
-            mainAudioSource.clip = mainTrack;
-        }
+		// Назначаем основной трек
+		if (mainTrack != null)
+			mainAudioSource.clip = mainTrack;
 
-        // Создаем пул аудиоисточников для эффективного использования
-        if (usePooling)
-        {
-            CreateAudioSourcePool();
-        }
+		// Создаем пул аудиоисточников для эффективного использования
+		if (usePooling)
+			CreateAudioSourcePool();
 
-        // Сортируем маркеры по времени
-        SortMarkersByTime();
-    }
+		// Сортируем маркеры по времени
+		SortMarkersByTime();
+	}
 
-    private void CreateAudioSourcePool()
-    {
-        // Очищаем существующие источники, если они есть
-        foreach (var source in audioSourcePool)
-        {
-            if (source != null)
-            {
-                Destroy(source.gameObject);
-            }
-        }
-        
-        audioSourcePool.Clear();
+	private void CreateAudioSourcePool()
+	{
+		// Очищаем существующие источники, если они есть
+		foreach (var source in audioSourcePool)
+			if (source != null)
+				Destroy(source.gameObject);
 
-        // Создаем новый пул
-        for (int i = 0; i < poolSize; i++)
-        {
-            GameObject audioObj = new GameObject($"AudioPool_{i}");
-            audioObj.transform.parent = transform;
-            AudioSource source = audioObj.AddComponent<AudioSource>();
-            source.playOnAwake = false;
-            audioSourcePool.Add(source);
-        }
-        
-        LogDebug($"Created audio source pool with {poolSize} sources");
-    }
+		audioSourcePool.Clear();
 
-    #endregion
+		// Создаем новый пул
+		for (var i = 0; i < poolSize; i++)
+		{
+			var audioObj = new GameObject($"AudioPool_{i}");
+			audioObj.transform.parent = transform;
+			var source = audioObj.AddComponent<AudioSource>();
+			source.playOnAwake = false;
+			audioSourcePool.Add(source);
+		}
 
-    #region Public API
+		LogDebug($"Created audio source pool with {poolSize} sources");
+	}
 
-    /// <summary>
-    /// Начать воспроизведение основного трека
-    /// </summary>
-    public void PlayMainTrack()
-    {
-        if (mainAudioSource.clip == null)
-        {
-            Debug.LogWarning("No main track assigned to play");
-            return;
-        }
+	#endregion
 
-        mainAudioSource.Play();
-        mainAudioSource.loop = true;
-        startTime = Time.time;
-        
-        // Сбрасываем состояние маркеров
-        ResetMarkers();
-        lastTriggeredMarkerIndex = -1;
-        
-        LogDebug("Started playing main track");
-    }
+	#region Public API
 
-    /// <summary>
-    /// Пауза воспроизведения
-    /// </summary>
-    public void PausePlayback()
-    {
-        if (mainAudioSource.isPlaying)
-        {
-            mainAudioSource.Pause();
-            LogDebug("Paused playback");
-        }
-    }
+	/// <summary>
+	///     Начать воспроизведение основного трека
+	/// </summary>
+	public void PlayMainTrack()
+	{
+		if (mainAudioSource.clip == null)
+		{
+			Debug.LogWarning("No main track assigned to play");
+			return;
+		}
 
-    /// <summary>
-    /// Продолжить воспроизведение после паузы
-    /// </summary>
-    public void ResumePlayback()
-    {
-        if (!mainAudioSource.isPlaying && mainAudioSource.clip != null)
-        {
-            mainAudioSource.UnPause();
-            // Корректируем startTime, чтобы учесть время, которое уже прошло
-            startTime = Time.time - mainAudioSource.time;
-            LogDebug("Resumed playback");
-        }
-    }
+		mainAudioSource.Play();
+		mainAudioSource.loop = true;
+		startTime = Time.time;
 
-    /// <summary>
-    /// Остановить воспроизведение
-    /// </summary>
-    public void StopPlayback()
-    {
-        mainAudioSource.Stop();
-        ResetMarkers();
-        LogDebug("Stopped playback");
-    }
+		// Сбрасываем состояние маркеров
+		ResetMarkers();
 
-    /// <summary>
-    /// Добавить аудио клип в очередь с отступом в миллисекундах
-    /// </summary>
-    /// <param name="clip">Аудио клип для воспроизведения</param>
-    /// <param name="offsetMs">Отступ в миллисекундах от времени следующего маркера</param>
-    /// <param name="volume">Громкость (0.0-1.0)</param>
-    public void EnqueueClip(AudioClip clip, int offsetMs = 0, float volume = 1.0f)
-    {
-        if (clip == null)
-        {
-            Debug.LogWarning("Trying to enqueue null audio clip");
-            return;
-        }
-        
-        QueuedAudioClip queuedClip = new QueuedAudioClip
-        {
-            clip = clip,
-            volume = volume,
-            offsetMs = offsetMs
-        };
-        
-        clipQueue.Enqueue(queuedClip);
-        
-        // Находим следующий маркер для отображения в логах
-        string nextMarkerInfo = GetNextMarkerInfo();
-        
-        LogDebug($"Enqueued clip {clip.name} with offset {offsetMs}ms " +
-                 $"(queue size: {clipQueue.Count}) - Next: {nextMarkerInfo}");
-    }
+		LogDebug("Started playing main track");
+	}
 
-    /// <summary>
-    /// Очистить всю очередь клипов
-    /// </summary>
-    public void ClearQueue()
-    {
-        clipQueue.Clear();
-        LogDebug("Cleared audio queue");
-    }
+	/// <summary>
+	///     Пауза воспроизведения
+	/// </summary>
+	public void PausePlayback()
+	{
+		if (mainAudioSource.isPlaying)
+		{
+			mainAudioSource.Pause();
+			LogDebug("Paused playback");
+		}
+	}
 
-    /// <summary>
-    /// Создать новый маркер программно
-    /// </summary>
-    /// <param name="markerName">Имя нового маркера</param>
-    /// <param name="timeInSeconds">Время в секундах</param>
-    public void CreateMarker(string markerName, float timeInSeconds)
-    {
-       
-        TimeMarker newMarker = new TimeMarker
-        {
-            timeInSeconds = timeInSeconds,
-            triggered = false
-        };
-        
-        timeMarkers.Add(newMarker);
-        SortMarkersByTime();
-        
-        LogDebug($"Created new marker {markerName} at {timeInSeconds} seconds");
-    }
+	/// <summary>
+	///     Продолжить воспроизведение после паузы
+	/// </summary>
+	public void ResumePlayback()
+	{
+		if (!mainAudioSource.isPlaying && mainAudioSource.clip != null)
+		{
+			mainAudioSource.UnPause();
+			// Корректируем startTime, чтобы учесть время, которое уже прошло
+			startTime = Time.time - mainAudioSource.time;
+			LogDebug("Resumed playback");
+		}
+	}
 
-    /// <summary>
-    /// Получить текущее время воспроизведения основного трека
-    /// </summary>
-    public float GetCurrentPlaybackTime()
-    {
-        if (mainAudioSource == null || mainAudioSource.clip == null)
-            return 0f;
-            
-        return mainAudioSource.time;
-    }
+	/// <summary>
+	///     Остановить воспроизведение
+	/// </summary>
+	public void StopPlayback()
+	{
+		mainAudioSource.Stop();
+		ResetMarkers();
+		LogDebug("Stopped playback");
+	}
 
-    /// <summary>
-    /// Переход к определенному времени в треке
-    /// </summary>
-    public void SeekToTime(float timeInSeconds)
-    {
-        if (mainAudioSource.clip != null)
-        {
-            mainAudioSource.time = Mathf.Clamp(timeInSeconds, 0, mainAudioSource.clip.length);
-            startTime = Time.time - mainAudioSource.time;
-            
-            // Сбрасываем маркеры и находим текущий
-            ResetMarkers();
-            UpdateMarkerStateBasedOnTime(mainAudioSource.time);
-            
-            LogDebug($"Seeked to time: {timeInSeconds} seconds");
-        }
-    }
+	/// <summary>
+	///     Добавить аудио клип в очередь с отступом в миллисекундах
+	/// </summary>
+	/// <param name="clip">Аудио клип для воспроизведения</param>
+	/// <param name="offsetMs">Отступ в миллисекундах от времени следующего маркера</param>
+	/// <param name="volume">Громкость (0.0-1.0)</param>
+	public void EnqueueClip(Note note)
+	{
+		if (note.AudioClip == null)
+		{
+			Debug.LogWarning("Trying to enqueue null audio clip");
+			return;
+		}
 
-    /// <summary>
-    /// Получить количество клипов в очереди
-    /// </summary>
-    public int GetQueueCount()
-    {
-        return clipQueue.Count;
-    }
+		clipQueue.Enqueue(note);
 
-    /// <summary>
-    /// Получить информацию о следующем маркере
-    /// </summary>
-    public string GetNextMarkerInfo()
-    {
-        int nextIndex = GetNextMarkerIndex();
-        if (nextIndex >= 0 && nextIndex < timeMarkers.Count)
-        {
-            var marker = timeMarkers[nextIndex];
-            return $"'marker at {marker.timeInSeconds:F2}s";
-        }
-        
-        return "No upcoming markers";
-    }
+		// Находим следующий маркер для отображения в логах
 
-    #endregion
+		LogDebug($"Enqueued clip {note.name} with offset {note.ClipOffset}ms " + $"(queue size: {clipQueue.Count})");
+	}
 
-    #region Internal Methods
+	/// <summary>
+	///     Очистить всю очередь клипов
+	/// </summary>
+	public void ResetAll()
+	{
+		ResetMarkers();
+		clipQueue.Clear();
+		LogDebug("Cleared audio queue");
+	}
 
-    private void ResetMarkers()
-    {
-        foreach (var marker in timeMarkers)
-        {
-            marker.triggered = false;
-        }
-    }
+	/// <summary>
+	///     Создать новый маркер программно
+	/// </summary>
+	/// <param name="markerName">Имя нового маркера</param>
+	/// <param name="timeInSeconds">Время в секундах</param>
+	public void CreateMarker(string markerName, float timeInSeconds)
+	{
+		var newMarker = new TimeMarker
+		{
+			timeInSeconds = timeInSeconds,
+			triggered = false
+		};
 
-    private void UpdateMarkerStateBasedOnTime(float currentTime)
-    {
-        lastTriggeredMarkerIndex = -1;
-        
-        for (int i = 0; i < timeMarkers.Count; i++)
-        {
-            if (timeMarkers[i].timeInSeconds <= currentTime)
-            {
-                timeMarkers[i].triggered = true;
-                lastTriggeredMarkerIndex = i;
-            }
-        }
-    }
+		timeMarkers.Add(newMarker);
+		SortMarkersByTime();
 
-    private int GetNextMarkerIndex()
-    {
-        // Определяем индекс следующего маркера
-        int nextIndex = lastTriggeredMarkerIndex + 1;
-        
-        if (nextIndex >= timeMarkers.Count)
-        {
-            // Нет больше маркеров
-            return -1;
-        }
-        
-        return nextIndex;
-    }
+		LogDebug($"Created new marker {markerName} at {timeInSeconds} seconds");
+	}
 
-    private void CheckTimeMarkers()
-    {
-        if (timeMarkers.Count == 0 || clipQueue.Count == 0)
-            return;
-        
-        int nextMarkerIndex = GetNextMarkerIndex();
-        if (nextMarkerIndex == -1) return; // Нет следующего маркера
-        
-        TimeMarker nextMarker = timeMarkers[nextMarkerIndex];
-        
-        // Если достигли времени следующего маркера и есть клипы в очереди
-        if (Math.Abs(currentPlaybackTime - nextMarker.timeInSeconds) < 0.050 && !nextMarker.triggered)
-        {
-            nextMarker.triggered = true;
-            lastTriggeredMarkerIndex = nextMarkerIndex;
-            
-            LogDebug($"Triggered marker at {currentPlaybackTime:F2}s");
-            
-            // Воспроизводим все доступные клипы в очереди
-            PlayQueuedClips(nextMarker.timeInSeconds);
-        }
-    }
+	/// <summary>
+	///     Получить текущее время воспроизведения основного трека
+	/// </summary>
+	public float GetCurrentPlaybackTime()
+	{
+		if (mainAudioSource == null || mainAudioSource.clip == null)
+			return 0f;
 
-    private void PlayQueuedClips(float markerTime)
-    {
-            
-        QueuedAudioClip queuedClip = clipQueue.Dequeue();
-            
-        // Вычисляем абсолютное время воспроизведения с учетом отступа
-        float offsetInSeconds = queuedClip.offsetMs / 1000.0f;
-        float absolutePlayTime = markerTime + offsetInSeconds;
-            
-        float delayTime = absolutePlayTime - currentPlaybackTime;
-        StartCoroutine(PlayClipWithDelay(queuedClip.clip, queuedClip.volume, delayTime));
-        LogDebug($"Will play {queuedClip.clip.name} after {delayTime:F2}s delay (offset {queuedClip.offsetMs}ms)");
-        
+		return mainAudioSource.time;
+	}
 
-    }
+	/// <summary>
+	///     Переход к определенному времени в треке
+	/// </summary>
+	public void SeekToTime(float timeInSeconds)
+	{
+		if (mainAudioSource.clip != null)
+		{
+			mainAudioSource.time = Mathf.Clamp(timeInSeconds, 0, mainAudioSource.clip.length);
+			startTime = Time.time - mainAudioSource.time;
 
-    private IEnumerator PlayClipWithDelay(AudioClip clip, float volume, float delayInSeconds)
-    {
-        yield return new WaitForSeconds(delayInSeconds);
-        PlayClip(clip, volume);
-    }
+			// Сбрасываем маркеры и находим текущий
+			ResetMarkers();
+			UpdateMarkerStateBasedOnTime(mainAudioSource.time);
 
-    private void PlayClip(AudioClip clip, float volume)
-    {
-        if (clip == null) return;
+			LogDebug($"Seeked to time: {timeInSeconds} seconds");
+		}
+	}
 
-        AudioSource source;
-        
-        if (usePooling)
-        {
-            source = GetAvailableAudioSource();
-        }
-        else
-        {
-            // Создаём временный аудиоисточник
-            GameObject tempGO = new GameObject("TempAudio");
-            source = tempGO.AddComponent<AudioSource>();
-            Destroy(tempGO, clip.length + 0.5f); // Небольшой запас времени
-        }
+	/// <summary>
+	///     Получить количество клипов в очереди
+	/// </summary>
+	public int GetQueueCount()
+	{
+		return clipQueue.Count;
+	}
 
-        source.clip = clip;
-        source.volume = volume;
-        source.Play();
-        
-        // Запускаем корутину, которая отметит, когда этот источник освободится
-        StartCoroutine(TrackAudioSourceCompletion(source, clip.length));
-    }
+	#endregion
 
-    private IEnumerator TrackAudioSourceCompletion(AudioSource source, float clipLength)
-    {
-        yield return new WaitForSeconds(clipLength + 0.1f);
-        
-        // Сброс источника для повторного использования
-        if (source != null && audioSourcePool.Contains(source))
-        {
-            source.clip = null;
-        }
-    }
+	#region Internal Methods
 
-    private AudioSource GetAvailableAudioSource()
-    {
-        // Сначала ищем неиспользуемый источник
-        foreach (var source in audioSourcePool)
-        {
-            if (source != null && !source.isPlaying)
-            {
-                return source;
-            }
-        }
-        
-        // Если все заняты, ищем тот, который скоро закончится
-        AudioSource bestCandidate = audioSourcePool[0]; // Берем первый как запасной вариант
-        float shortestRemainingTime = float.MaxValue;
-        
-        foreach (var source in audioSourcePool)
-        {
-            if (source != null && source.clip != null)
-            {
-                float remainingTime = source.clip.length - source.time;
-                if (remainingTime < shortestRemainingTime)
-                {
-                    shortestRemainingTime = remainingTime;
-                    bestCandidate = source;
-                }
-            }
-        }
-        
-        // Останавливаем текущее воспроизведение и возвращаем этот источник
-        if (bestCandidate != null)
-        {
-            bestCandidate.Stop();
-        }
-        
-        return bestCandidate;
-    }
+	private void ResetMarkers()
+	{
+		foreach (var marker in timeMarkers)
+			marker.triggered = false;
+	}
 
-    private void LogDebug(string message)
-    {
-        if (debugMode)
-        {
-            Debug.Log($"[AudioTimelineService] {message}");
-        }
-    }
+	private void UpdateMarkerStateBasedOnTime(float currentTime)
+	{
+		for (var i = 0; i < timeMarkers.Count; i++)
+			if (timeMarkers[i].timeInSeconds <= currentTime)
+				timeMarkers[i].triggered = true;
+	}
 
-    #endregion
+	private void CheckTimeMarkers()
+	{
+		if (timeMarkers.Count == 0 || clipQueue.Count == 0)
+			return;
 
-    #region Editor Methods
+		// Если достигли времени следующего маркера и есть клипы в очереди
+		var nextMarker = timeMarkers.FirstOrDefault(n => Math.Abs(currentPlaybackTime - n.timeInSeconds) < 0.050 && !n.triggered);
+		if (nextMarker != null)
+		{
+			nextMarker.triggered = true;
+			LogDebug($"Triggered marker at {currentPlaybackTime:F2}s");
+			PlayQueuedClips(nextMarker.timeInSeconds);
+		}
+	}
 
-    // Метод для редактора Unity - добавляет пустой маркер
-    [ContextMenu("Add Empty Marker")]
-    public void AddEmptyMarker()
-    {
-        TimeMarker newMarker = new TimeMarker
-        {
-            timeInSeconds = 0f,
-            triggered = false
-        };
-        
-        timeMarkers.Add(newMarker);
-        SortMarkersByTime();
-    }
+	private void PlayQueuedClips(float markerTime)
+	{
+		var queuedClip = clipQueue.Dequeue();
 
-    // Сортировка маркеров по времени (для инспектора)
-    [ContextMenu("Sort Markers by Time")]
-    public void SortMarkersByTime()
-    {
-        timeMarkers.Sort((a, b) => a.timeInSeconds.CompareTo(b.timeInSeconds));
-    }
+		// Вычисляем абсолютное время воспроизведения с учетом отступа
+		var offsetInSeconds = queuedClip.ClipOffset / 1000.0f;
+		var absolutePlayTime = markerTime + offsetInSeconds;
 
-    #endregion
+		var delayTime = absolutePlayTime - currentPlaybackTime;
+		StartCoroutine(PlayClipWithDelay(queuedClip, delayTime));
+		LogDebug($"Will play {queuedClip.AudioClip.name} after {delayTime:F2}s delay (offset {queuedClip.ClipOffset}ms)");
+
+	}
+
+	private IEnumerator PlayClipWithDelay(Note note, float delayInSeconds)
+	{
+		yield return new WaitForSeconds(delayInSeconds);
+
+		PlayClip(note);
+	}
+
+	private void PlayClip(Note note)
+	{
+		if (note.AudioClip == null)
+			return;
+
+		AudioSource source;
+
+		if (usePooling)
+		{
+			source = GetAvailableAudioSource();
+		}
+		else
+		{
+			var tempGO = new GameObject("TempAudio");
+			source = tempGO.AddComponent<AudioSource>();
+			Destroy(tempGO, note.AudioClip.length + 0.5f);
+		}
+
+		source.clip = note.AudioClip;
+		source.volume = 1;
+		source.Play();
+
+		StartCoroutine(TrackAudioSourceCompletion(note, source, note.AudioClip.length));
+	}
+
+	private IEnumerator TrackAudioSourceCompletion(Note note, AudioSource source, float clipLength)
+	{
+		yield return new WaitForSeconds(4f);
+
+		// Сброс источника для повторного использования
+		
+		NotePlay?.Invoke(note);
+		if (source != null && audioSourcePool.Contains(source))
+			source.clip = null;
+	}
+
+	private AudioSource GetAvailableAudioSource()
+	{
+		// Сначала ищем неиспользуемый источник
+		foreach (var source in audioSourcePool)
+			if (source != null && !source.isPlaying)
+				return source;
+
+		// Если все заняты, ищем тот, который скоро закончится
+		var bestCandidate = audioSourcePool[0]; // Берем первый как запасной вариант
+		var shortestRemainingTime = float.MaxValue;
+
+		foreach (var source in audioSourcePool)
+			if (source != null && source.clip != null)
+			{
+				var remainingTime = source.clip.length - source.time;
+				if (remainingTime < shortestRemainingTime)
+				{
+					shortestRemainingTime = remainingTime;
+					bestCandidate = source;
+				}
+			}
+
+		// Останавливаем текущее воспроизведение и возвращаем этот источник
+		if (bestCandidate != null)
+			bestCandidate.Stop();
+
+		return bestCandidate;
+	}
+
+	private void LogDebug(string message)
+	{
+		if (debugMode)
+			Debug.Log($"[AudioTimelineService] {message}");
+	}
+
+	#endregion
+
+	#region Editor Methods
+
+	// Метод для редактора Unity - добавляет пустой маркер
+	[ContextMenu("Add Empty Marker")]
+	public void AddEmptyMarker()
+	{
+		var newMarker = new TimeMarker
+		{
+			timeInSeconds = 0f,
+			triggered = false
+		};
+
+		timeMarkers.Add(newMarker);
+		SortMarkersByTime();
+	}
+
+	// Сортировка маркеров по времени (для инспектора)
+	[ContextMenu("Sort Markers by Time")]
+	public void SortMarkersByTime()
+	{
+		timeMarkers.Sort((a, b) => a.timeInSeconds.CompareTo(b.timeInSeconds));
+	}
+
+	#endregion
 }

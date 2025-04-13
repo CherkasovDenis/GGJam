@@ -69,9 +69,11 @@ public class Note : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
 		flightSequence?.Kill();
 	}
 
-	public Sequence ResetNote()
+	public void ResetNote()
 	{
-		return DOTween.Sequence().Join(Button.image.DOFade(1, 0f));
+		Button.image.DOFade(1, 0f);
+		transform.localScale = Vector3.one;
+		StartRandomFlight();
 	}
 
 	private Tween RandomFlightTween()

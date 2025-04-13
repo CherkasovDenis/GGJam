@@ -1,6 +1,7 @@
 ﻿using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -12,6 +13,7 @@ namespace GGJam.Childhood.Scripts.Mother
 	{
 		public CanvasGroup MainObj;
 		public TMP_Text Text;
+		public TMP_Text Number;
 	}
 
 	public class MotherSong : MonoBehaviour
@@ -27,8 +29,10 @@ namespace GGJam.Childhood.Scripts.Mother
 		private RectTransform _motherMouth;
 		[SerializeField]
 		private SongHint[] _songHints;
+		[SerializeField]
+		private CanvasGroup _restartHint;
 
-		private int _clickedNoteCount;
+		private Dictionary<Note, SongHint> _hints =new Dictionary<Note, SongHint>();
 		private int _currentActiveNote;
 
 		private int _lastNote = 0;
@@ -37,8 +41,38 @@ namespace GGJam.Childhood.Scripts.Mother
 
 		private void Awake()
 		{
+			_audioTimelineService.NotePlay += NotePlayed;
 			foreach (var note in _notes)
 				note.OnNoteReleased += NoteOnOnNoteReleased;
+		}
+
+		private void NotePlayed(Note note)
+		{
+			if (_currentActiveNote == 0)
+			{
+				return;
+			}
+			
+			_hints[note].MainObj.gameObject.SetActive(false);
+			_currentActiveNote--;
+			
+			var i = Array.IndexOf(_notes, note);
+			
+			var correctNote = i == _lastNote;
+
+			if (!correctNote)
+			{
+				_lastNote = 0;
+				_hints.Clear();
+				_currentActiveNote = 0;
+				Blink();
+			}
+			
+			if (correctNote)
+				_lastNote++;
+
+			if (_lastNote == _notes.Length)
+				_noteWait.TrySetResult();
 		}
 
 		private void OnDestroy()
@@ -71,6 +105,9 @@ namespace GGJam.Childhood.Scripts.Mother
 						songHint.MainObj.alpha = 0;
 						songHint.MainObj.DOFade(1, .5f);
 						songHint.Text.text = note.Text;
+						var i = Array.IndexOf(_notes, note);
+						songHint.Number.text = (i + 1).ToString();
+						_hints[note] = songHint;
 					}));
 
 				note.transform.DOJump(_motherMouth.position,
@@ -84,40 +121,37 @@ namespace GGJam.Childhood.Scripts.Mother
 
 		private void ClickedNote(Note note)
 		{
-			_clickedNoteCount++;
 			_currentActiveNote++;
-
-			var i = Array.IndexOf(_notes, note);
-
-			var correctNote = i == _lastNote;
-			_audioTimelineService.EnqueueClip(note.AudioClip, note.ClipOffset);
-
-			if (correctNote)
-				_lastNote++;
-
-			if (_lastNote == _notes.Length)
-				_noteWait.TrySetResult();
-
-			if (_clickedNoteCount >= _notes.Length)
-			{
-				_clickedNoteCount = 0;
-				_lastNote = 0;
-				Blink();
-			}
+			
+			_audioTimelineService.EnqueueClip(note);
 		}
 
 		private void Blink()
 		{
-			var seq = DOTween.Sequence();
-			foreach (var note1 in _notes)
-				seq.Join(note1.ResetNote());
-
+			_audioTimelineService.ResetAll();
+			
+			_restartHint.DOFade(1, 2).OnComplete(() =>
+			{
+				_restartHint.DOFade(0, 2);
+			});
+			
 			DOTween.Sequence()
 				.Join(_eyeBlink[0].rectTransform.DOAnchorMin(new Vector2(0, .5f), .5f))
 				.Join(_eyeBlink[1].rectTransform.DOAnchorMax(new Vector2(1, .5f), .5f))
-				.Append(seq)
-				.Join(_eyeBlink[0].rectTransform.DOAnchorMin(new Vector2(0, 0), .5f))
-				.Join(_eyeBlink[1].rectTransform.DOAnchorMax(new Vector2(1, 0), .5f));
+				.AppendCallback(() =>
+				{
+					foreach (var note1 in _notes)
+					{
+						note1.ResetNote();
+					}
+					
+					foreach (var songHint in _songHints)
+					{
+						songHint.MainObj.gameObject.SetActive(false);
+					}
+				})
+				.Join(_eyeBlink[0].rectTransform.DOAnchorMin(new Vector2(0, 1), .5f))
+				.Join(_eyeBlink[1].rectTransform.DOAnchorMax(new Vector2(1, 0), .5f)).Play();
 		}
 	}
 }
