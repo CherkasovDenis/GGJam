@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using GGJam.Dialogs.Scripts;
 using GGJam.Scripts.Coma.PlayerSight;
 using GGJam.Scripts.Coma.Settings;
 using GGJam.Scripts.Coma.SoundWave;
@@ -15,6 +16,9 @@ namespace GGJam.Scripts.Coma.Shapes
     {
         [Inject]
         private Final _final;
+
+        [Inject]
+        private DialogService _dialogService;
 
         [Inject]
         private CameraSettings _cameraSettings;
@@ -63,6 +67,8 @@ namespace GGJam.Scripts.Coma.Shapes
 
         public void Start()
         {
+            _dialogService.gameObject.SetActive(false);
+
             foreach (var shapeView in _shapesModel.ShapeViews)
             {
                 shapeView.Disable();

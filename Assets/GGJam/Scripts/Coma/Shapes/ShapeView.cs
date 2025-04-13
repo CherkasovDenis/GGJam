@@ -221,7 +221,11 @@ namespace GGJam.Scripts.Coma.Shapes
 
             SoundWaveView.Play();
 
-            await UniTask.Delay(TimeSpan.FromSeconds(6f),
+            var audioLength = _audioSource.clip.length;
+
+            var audioWaitDuration = audioLength < 2f || audioLength > 15f ? 6f : audioLength;
+
+            await UniTask.Delay(TimeSpan.FromSeconds(audioWaitDuration),
                 cancellationToken: destroyCancellationToken);
 
             SoundWaveView.Stop();

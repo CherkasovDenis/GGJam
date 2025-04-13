@@ -46,13 +46,6 @@ namespace GGJam.Scripts
         {
             _currentSceneIndex++;
 
-            if (_currentSceneIndex >= SceneManager.sceneCountInBuildSettings)
-            {
-                Debug.Log("Quit");
-                Application.Quit();
-                return;
-            }
-
             SwitchChapterAsync().Forget();
         }
 
@@ -61,20 +54,13 @@ namespace GGJam.Scripts
             gameObject.SetActive(true);
             _chapterText.alpha = 0f;
 
-            if (_currentSceneIndex == 0)
-            {
-                _fade.color = Color.black;
-            }
-            else
-            {
-                var color = Color.black;
-                color.a = 0f;
+            var color = Color.black;
+            color.a = 0f;
 
-                _fade.color = color;
-                _fade.DOFade(1f, _fadeDuration);
-            }
+            _fade.color = color;
+            _fade.DOFade(1f, _fadeDuration);
 
-            if (_currentSceneIndex == 2)
+            if (_currentSceneIndex == 3)
             {
                 _chapterText.text = _hellModel.SendToHell ? _chapterNames[3] : _chapterNames[2];
             }
@@ -102,6 +88,13 @@ namespace GGJam.Scripts
 
         private void LoadNextScene()
         {
+            if (_currentSceneIndex >= SceneManager.sceneCountInBuildSettings)
+            {
+                Debug.Log("Quit");
+                Application.Quit();
+                return;
+            }
+
             Debug.Log($"Loading scene {_currentSceneIndex}");
             SceneManager.LoadScene(_currentSceneIndex);
         }
