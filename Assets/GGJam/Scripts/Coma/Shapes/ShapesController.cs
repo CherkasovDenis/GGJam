@@ -14,6 +14,9 @@ namespace GGJam.Scripts.Coma.Shapes
     public class ShapesController : IInitializable, IDisposable, IStartable, ITickable
     {
         [Inject]
+        private Final _final;
+
+        [Inject]
         private CameraSettings _cameraSettings;
 
         [Inject]
@@ -43,6 +46,7 @@ namespace GGJam.Scripts.Coma.Shapes
             }
 
             _shapesModel.OnNextChapter += PrepareNextChapter;
+            _shapesModel.OnFinal += EnableFinal;
         }
 
         public void Dispose()
@@ -54,6 +58,7 @@ namespace GGJam.Scripts.Coma.Shapes
             }
 
             _shapesModel.OnNextChapter -= PrepareNextChapter;
+            _shapesModel.OnFinal -= EnableFinal;
         }
 
         public void Start()
@@ -219,6 +224,11 @@ namespace GGJam.Scripts.Coma.Shapes
             shapeView.transform.SetParent(_playerSightView.ShapesParent);
 
             shapeView.AddToInventory(_playerSightView.GetEmptyPoint(shapeView.Id), wrongDrop);
+        }
+
+        private void EnableFinal()
+        {
+            _final.gameObject.SetActive(true);
         }
     }
 }

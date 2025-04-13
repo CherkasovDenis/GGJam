@@ -36,6 +36,9 @@ namespace GGJam.Scripts.Coma
         [SerializeField]
         private List<ShapeView> _shapeViews;
 
+        [SerializeField]
+        private Final _final;
+
         protected override void Configure(IContainerBuilder builder)
         {
             builder.RegisterInstance(_cameraSettings);
@@ -47,6 +50,7 @@ namespace GGJam.Scripts.Coma
             builder.RegisterInstance(_controlPointView);
             builder.RegisterInstance(_playerSightView);
             builder.RegisterInstance(_shapeViews);
+            builder.RegisterInstance(_final);
 
             builder.RegisterEntryPoint<ControlPointController>(Lifetime.Scoped).WithParameter(_cameraTransform);
             builder.RegisterEntryPoint<CameraRotationController>(Lifetime.Scoped).WithParameter(_cameraTransform);
