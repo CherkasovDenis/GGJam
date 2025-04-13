@@ -1836,6 +1836,22 @@ PrefabInstance:
       propertyPath: _id
       value: silence_3
       objectReference: {fileID: 0}
+    - target: {fileID: 6974405304081007164, guid: f17dd83051f092a45a979d497974a974, type: 3}
+      propertyPath: m_Size.x
+      value: 2.87
+      objectReference: {fileID: 0}
+    - target: {fileID: 6974405304081007164, guid: f17dd83051f092a45a979d497974a974, type: 3}
+      propertyPath: m_Size.y
+      value: 2.82
+      objectReference: {fileID: 0}
+    - target: {fileID: 6974405304081007164, guid: f17dd83051f092a45a979d497974a974, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 4476161785028026608, guid: 7e2099c3f4adb224ea56592a99113b41, type: 3}
+    - target: {fileID: 6974405304081007164, guid: f17dd83051f092a45a979d497974a974, type: 3}
+      propertyPath: m_WasSpriteAssigned
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7429864713700496707, guid: f17dd83051f092a45a979d497974a974, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
