@@ -26,9 +26,9 @@ namespace GGJam.Dialogs.Scripts
 		[SerializeField]
 		private Characters[] _allCharacters;
 		[SerializeField]
-		private Button _nextButton;
+		public Button _nextButton;
 		[SerializeField]
-		private DialogConfig[] _dialogConfigs;
+		private DialogConfig _dialogConfigs;
 
 		private bool _showed;
 
@@ -56,7 +56,7 @@ namespace GGJam.Dialogs.Scripts
 				});
 		}
 
-		public async UniTask ShowDialog(string dialogKey)
+		public async UniTask ShowDialog(int dialogKey, bool ignoreWait = false)
 		{
 			var dialog = GetDialogsFromAllConfigs(dialogKey);
 			if (dialog == null)
@@ -71,6 +71,9 @@ namespace GGJam.Dialogs.Scripts
 			SetSprite(dialog);
 
 			SetText(dialog);
+			
+			if(ignoreWait)
+				return;
 
 			await _nextButton.OnClickAsync();
 		}
@@ -79,6 +82,7 @@ namespace GGJam.Dialogs.Scripts
 		{
 			var sprite = GetSprite(dialog.Character);
 			_character.sprite = sprite;
+			_character.SetNativeSize();
 		}
 
 		private void SetText(Dialog dialog)
@@ -102,9 +106,9 @@ namespace GGJam.Dialogs.Scripts
 			return _allCharacters.FirstOrDefault(x => x.Character == key).Sprite;
 		}
 
-		private Dialog GetDialogsFromAllConfigs(string key)
+		private Dialog GetDialogsFromAllConfigs(int key)
 		{
-			return _dialogConfigs.SelectMany(x => x.Dialogs).FirstOrDefault(x => x.Key == key);
+			return _dialogConfigs.GetDialog(key);
 		}
 	}
 }

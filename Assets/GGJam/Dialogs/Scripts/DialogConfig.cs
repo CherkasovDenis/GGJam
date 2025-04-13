@@ -7,14 +7,14 @@ namespace GGJam.Dialogs.Scripts
 	public enum Character
 	{
 		None = 0,
-		Character1 = 1,
-		Character2 = 2,
-		Character3 = 3,
+		KOLYA = 1,
+		PETYA = 2,
+		ZHENYA = 3,
+		DOG = 4,
 	}
 	[Serializable]
 	public class Dialog
 	{
-		public string Key;
 		public Character Character;
 		[TextArea]
 		public string Text;
@@ -26,9 +26,9 @@ namespace GGJam.Dialogs.Scripts
 		[field: SerializeField]
 		public Dialog[] Dialogs { get; private set; }
 
-		public Dialog GetDialog(string key)
+		public Dialog GetDialog(int key)
 		{
-			return Dialogs.FirstOrDefault(x => x.Key == key);
+			return Dialogs[key];
 		}
 	}
 }

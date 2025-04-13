@@ -1,4 +1,5 @@
-﻿using GGJam.Childhood.SchoolGame.Scripts;
+﻿using GGJam.Childhood.OutDoor.Scripts;
+using GGJam.Childhood.SchoolGame.Scripts;
 using GGJam.Childhood.Scripts.Mother;
 using UnityEngine;
 using VContainer;
@@ -13,6 +14,8 @@ namespace GGJam.ChildHood.Scripts
 		[SerializeField]
 		private MathGame _mathGame;
 		[SerializeField]
+		private OutDoorGame _outDoorGame;
+		[SerializeField]
 		private CanvasGroup _fader;
 		
 		
@@ -20,6 +23,7 @@ namespace GGJam.ChildHood.Scripts
 		{
 			builder.RegisterInstance(_motherSong);
 			builder.RegisterInstance(_mathGame);
+			builder.RegisterInstance(_outDoorGame);
 			builder.RegisterEntryPoint<GameplayStateMachine>().WithParameter(_fader);
 		}
 	}

@@ -1,8 +1,10 @@
 ﻿using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using GGJam.Childhood.OutDoor.Scripts;
 using GGJam.Childhood.SchoolGame.Scripts;
 using GGJam.Childhood.Scripts.Mother;
 using GGJam.Dialogs.Scripts;
+using GGJam.Scripts;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -20,7 +22,13 @@ namespace GGJam.ChildHood.Scripts
 		[Inject]
 		private readonly MathGame _mathGame;
 		[Inject]
+		private readonly OutDoorGame _outDoorGame;
+		[Inject]
 		private CanvasGroup _fader;
+		[Inject]
+		private readonly SceneService _sceneService;
+		
+
 		
 
 
@@ -38,15 +46,13 @@ namespace GGJam.ChildHood.Scripts
 			await _mathGame.RunMiniGame();
 			await FadeIn();
 			_mathGame.gameObject.SetActive(false);
+			_outDoorGame.gameObject.SetActive(true);
 			
 			await FadeDown();
-			
-			
-			// await _dialogService.ShowDialog("loh_1");
 
-			// await _dialogService.ShowDialog("pidr_2");
-
-			// _dialogService.HideWindow();
+			await _outDoorGame.RunMiniGame();
+			
+			_sceneService.LoadNextScene();
 		}
 
 		private async UniTask FadeIn()
