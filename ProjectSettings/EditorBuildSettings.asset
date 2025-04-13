@@ -6,8 +6,14 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 8c9cfa26abfee488c85f1582747f6a02
+    path: Assets/GGJam/Scenes/Menu.unity
+    guid: 674054c58d90b3e4282f93c96bcadec3
+  - enabled: 1
+    path: Assets/GGJam/Scenes/Childhood.unity
+    guid: 9da82f19b46772447827a5825172d8c7
+  - enabled: 1
+    path: Assets/GGJam/Scenes/Coma.unity
+    guid: aacb45bfc2b35e246b034e4b4d4eea75
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
