@@ -146,7 +146,6 @@ namespace GGJam.Childhood.OutDoor.Scripts
 				await UniTask.WaitForSeconds(3, cancellationToken: cancelToken);
 				_dialogService.ShowDialog(24, true).Forget();
 				await UniTask.WaitForSeconds(3, cancellationToken: cancelToken);
-				_dialogService.ShowDialog(25, true).Forget();
 				_hellModel.SendToHell = false;
 			}
 
@@ -189,19 +188,19 @@ namespace GGJam.Childhood.OutDoor.Scripts
 
 		private async UniTask KillDog()
 		{
+			await _dialogService.ShowDialog(25);
 			await _dialogService.ShowDialog(26);
 			await _dialogService.ShowDialog(27);
-			await _dialogService.ShowDialog(28);
 
 			_showel.DOFade(1, 1);
 
+			await _dialogService.ShowDialog(28);
 			await _dialogService.ShowDialog(29);
 			await _dialogService.ShowDialog(30);
-			await _dialogService.ShowDialog(31);
 
 			_showel.sprite = showel2;
 
-			await _dialogService.ShowDialog(32);
+			await _dialogService.ShowDialog(31);
 
 			_showelHit.Play();
 
