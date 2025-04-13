@@ -50,6 +50,7 @@ namespace GGJam.Menu.Scripts.Intro
             // Включается музыка
 
             _introSettings.TextRect.DOAnchorPosY(_introSettings.TextEndPosition, _introSettings.TextMoveDuration)
+                .SetEase(Ease.Linear)
                 .ToUniTask(cancellationToken: cancellationToken);
 
             // Появился и поплыл текст
