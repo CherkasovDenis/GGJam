@@ -3,6 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using GGJam.Menu.Scripts.PlayButton;
+using GGJam.Scripts;
 using UnityEngine.UI;
 using VContainer;
 using VContainer.Unity;
@@ -16,6 +17,9 @@ namespace GGJam.Menu.Scripts.Intro
 
         [Inject]
         private PlayButtonView _playButtonView;
+
+        [Inject]
+        private SceneService _sceneService;
 
         private CancellationTokenSource _ctr;
 
@@ -58,9 +62,11 @@ namespace GGJam.Menu.Scripts.Intro
 
             await FadeBackground(_introSettings.Backgrounds[1], cancellationToken);
 
+            await UniTask.WaitForSeconds(_introSettings.BackgroundDuration, cancellationToken: cancellationToken);
+
             // Скрылся текст
 
-            // Смена сцены
+            _sceneService.LoadNextScene();
         }
 
         private async UniTask FadeBackground(Image background, CancellationToken cancellationToken)
