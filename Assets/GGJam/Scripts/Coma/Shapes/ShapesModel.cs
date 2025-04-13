@@ -11,6 +11,8 @@ namespace GGJam.Scripts.Coma.Shapes
     {
         public event Action<ComaChapter> OnNextChapter;
 
+        public event Action OnFinal;
+
         public List<ShapeView> CurrentShapeViews { get; } = new();
 
         public List<ShapeConnect> AllConnections { get; set; }
@@ -22,9 +24,6 @@ namespace GGJam.Scripts.Coma.Shapes
 
         [Inject]
         private readonly List<ShapeView> _shapeViews;
-
-        [Inject]
-        private readonly ComaModel _comaModel;
 
         private List<string> _connects = new();
 
@@ -38,7 +37,7 @@ namespace GGJam.Scripts.Coma.Shapes
 
             if (nextChapterIndex >= _comaChapterSettings.Chapters.Count)
             {
-                _comaModel.OnComaFinal();
+                OnFinal?.Invoke();
                 return;
             }
 

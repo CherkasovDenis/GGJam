@@ -199,7 +199,14 @@ namespace GGJam.Scripts.Coma.Shapes
                 _addingToInventory = false;
                 InInventory = true;
                 StartRandomFlight();
+
+                if (_sprite != null)
+                {
+                    _mesh.enabled = false;
+                }
             });
+
+            sequence.Play();
 
             PlaySoundInInventoryAsync().Forget();
         }
