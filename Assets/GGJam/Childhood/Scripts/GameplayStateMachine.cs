@@ -31,18 +31,18 @@ namespace GGJam.ChildHood.Scripts
 
 		public async UniTask StartAsync(CancellationToken cancellation = new CancellationToken())
 		{
-			// _motherSong.gameObject.SetActive(true);
-			// await FadeDown();
-			// await _motherSong.RunMiniGame();
-			//
-			// await FadeIn();
-			// _motherSong.gameObject.SetActive(false);
-			// _mathGame.gameObject.SetActive(true);
-			// await FadeDown();
-			//
-			// await _mathGame.RunMiniGame();
-			// await FadeIn();
-			// _mathGame.gameObject.SetActive(false);
+			_motherSong.gameObject.SetActive(true);
+			await FadeDown();
+			await _motherSong.RunMiniGame();
+			
+			await FadeIn();
+			_motherSong.gameObject.SetActive(false);
+			_mathGame.gameObject.SetActive(true);
+			await FadeDown();
+			
+			await _mathGame.RunMiniGame();
+			await FadeIn();
+			_mathGame.gameObject.SetActive(false);
 			_outDoorGame.gameObject.SetActive(true);
 			
 			await FadeDown();
