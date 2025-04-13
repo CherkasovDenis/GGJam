@@ -19,6 +19,7 @@ namespace GGJam.Childhood.Scripts.Mother
 	public class MotherSong : MonoBehaviour
 	{
 		private const int MaxNote = 2;
+		
 		[SerializeField]
 		private Note[] _notes;
 		[SerializeField]
@@ -32,7 +33,7 @@ namespace GGJam.Childhood.Scripts.Mother
 		[SerializeField]
 		private CanvasGroup _restartHint;
 
-		private Dictionary<Note, SongHint> _hints =new Dictionary<Note, SongHint>();
+		private Dictionary<Note, SongHint> _hints = new Dictionary<Note, SongHint>();
 		private int _currentActiveNote;
 
 		private int _lastNote = 0;
@@ -52,12 +53,12 @@ namespace GGJam.Childhood.Scripts.Mother
 			{
 				return;
 			}
-			
+
 			_hints[note].MainObj.gameObject.SetActive(false);
 			_currentActiveNote--;
-			
+
 			var i = Array.IndexOf(_notes, note);
-			
+
 			var correctNote = i == _lastNote;
 
 			if (!correctNote)
@@ -67,12 +68,15 @@ namespace GGJam.Childhood.Scripts.Mother
 				_currentActiveNote = 0;
 				Blink();
 			}
-			
+
 			if (correctNote)
 				_lastNote++;
 
 			if (_lastNote == _notes.Length)
+			{
+				_audioTimelineService.mainAudioSource.DOFade(0, 1f).OnComplete(() => _audioTimelineService.StopPlayback());
 				_noteWait.TrySetResult();
+			}
 		}
 
 		private void OnDestroy()
@@ -122,19 +126,16 @@ namespace GGJam.Childhood.Scripts.Mother
 		private void ClickedNote(Note note)
 		{
 			_currentActiveNote++;
-			
+
 			_audioTimelineService.EnqueueClip(note);
 		}
 
 		private void Blink()
 		{
 			_audioTimelineService.ResetAll();
-			
-			_restartHint.DOFade(1, 2).OnComplete(() =>
-			{
-				_restartHint.DOFade(0, 2);
-			});
-			
+
+			_restartHint.DOFade(1, 2).OnComplete(() => { _restartHint.DOFade(0, 2); });
+
 			DOTween.Sequence()
 				.Join(_eyeBlink[0].rectTransform.DOAnchorMin(new Vector2(0, .5f), .5f))
 				.Join(_eyeBlink[1].rectTransform.DOAnchorMax(new Vector2(1, .5f), .5f))
@@ -144,14 +145,15 @@ namespace GGJam.Childhood.Scripts.Mother
 					{
 						note1.ResetNote();
 					}
-					
+
 					foreach (var songHint in _songHints)
 					{
 						songHint.MainObj.gameObject.SetActive(false);
 					}
 				})
 				.Join(_eyeBlink[0].rectTransform.DOAnchorMin(new Vector2(0, 1), .5f))
-				.Join(_eyeBlink[1].rectTransform.DOAnchorMax(new Vector2(1, 0), .5f)).Play();
+				.Join(_eyeBlink[1].rectTransform.DOAnchorMax(new Vector2(1, 0), .5f))
+				.Play();
 		}
 	}
 }
