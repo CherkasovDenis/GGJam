@@ -100,6 +100,7 @@ namespace GGJam.Childhood.Scripts.Mother
 					return;
 
 				note.StopFlight();
+				note.SaveChecked();
 				note.transform.DOScale(Vector3.zero, .5f)
 					.SetEase(Ease.InBack)
 					.OnComplete((() =>

@@ -1,9 +1,10 @@
 ﻿using DG.Tweening;
+using GGJam.Childhood.Scripts.Mother;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class Note : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class Note : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler
 {
 	public event System.Action<Note> OnNoteReleased;
 	public Button Button;
@@ -15,11 +16,16 @@ public class Note : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
 	private bool isDragging = false;
 	private Vector2 offset;
 	private RectTransform rectTransform;
+	[SerializeField]
+	private SongHint _songHint;
+	private bool saved;
+	private Tween tween;
 
 	private void Awake()
 	{
 		rectTransform = GetComponent<RectTransform>();
 		StartRandomFlight();
+		_songHint.MainObj.alpha = 0;
 	}
 
 	public void OnBeginDrag(PointerEventData eventData)
@@ -74,6 +80,11 @@ public class Note : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
 		Button.image.DOFade(1, 0f);
 		transform.localScale = Vector3.one;
 		StartRandomFlight();
+		if (saved)
+		{
+			_songHint.MainObj.alpha = 1;
+			tween = _songHint.MainObj.DOFade(0, 5f);
+		}
 	}
 
 	private Tween RandomFlightTween()
@@ -86,5 +97,23 @@ public class Note : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
 		var randomPoint = new Vector2(Random.Range(-xRange, xRange), Random.Range(-yRange, yRange));
 
 		return rectTransform.DOAnchorPos(randomPoint, 100).SetSpeedBased().SetEase(Ease.Linear);
+	}
+
+	public void SaveChecked()
+	{
+		saved = true;
+	}
+
+	public void OnPointerEnter(PointerEventData eventData)
+	{
+		tween?.Kill();
+		if (saved)
+			tween = _songHint.MainObj.DOFade(1, .5f);
+	}
+	public void OnPointerExit(PointerEventData eventData)
+	{
+		tween?.Kill();
+		if (saved)
+			tween = _songHint.MainObj.DOFade(0, 3f);
 	}
 }
