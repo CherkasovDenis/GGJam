@@ -22,6 +22,9 @@ namespace GGJam.Scripts.Coma
         private SoundWaveView _soundWaveViewPrefab;
 
         [SerializeField]
+        private ShapesSoundService _shapesSoundService;
+
+        [SerializeField]
         private Camera _camera;
 
         [SerializeField]
@@ -46,6 +49,7 @@ namespace GGJam.Scripts.Coma
 
             builder.RegisterInstance(_soundWaveViewPrefab);
 
+            builder.RegisterInstance(_shapesSoundService);
             builder.RegisterInstance(_camera);
             builder.RegisterInstance(_controlPointView);
             builder.RegisterInstance(_playerSightView);

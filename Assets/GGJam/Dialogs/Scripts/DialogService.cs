@@ -26,7 +26,7 @@ namespace GGJam.Dialogs.Scripts
 		[SerializeField]
 		private Characters[] _allCharacters;
 		[SerializeField]
-		public Button _nextButton;
+		private Button _nextButton;
 		[SerializeField]
 		private DialogConfig _dialogConfigs;
 
@@ -76,6 +76,16 @@ namespace GGJam.Dialogs.Scripts
 				return;
 
 			await _nextButton.OnClickAsync();
+		}
+
+		public void DisableNextButton()
+		{
+			_nextButton.image.raycastTarget = false;
+		}
+
+		public void EnableNextButton()
+		{
+			_nextButton.image.raycastTarget = true;
 		}
 
 		private void SetSprite(Dialog dialog)

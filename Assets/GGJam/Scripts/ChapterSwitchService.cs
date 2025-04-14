@@ -42,6 +42,7 @@ namespace GGJam.Scripts
             gameObject.SetActive(false);
         }
 
+        [ContextMenu("SwitchChapter")]
         public void SwitchChapter()
         {
             _currentSceneIndex++;

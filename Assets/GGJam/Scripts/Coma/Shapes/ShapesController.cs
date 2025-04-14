@@ -27,6 +27,9 @@ namespace GGJam.Scripts.Coma.Shapes
         private ComaChapterSettings _comaChapterSettings;
 
         [Inject]
+        private ShapesSoundService _shapesSoundService;
+
+        [Inject]
         private Transform _cameraTransform;
 
         [Inject]
@@ -130,7 +133,7 @@ namespace GGJam.Scripts.Coma.Shapes
                     {
                         if (three == shapeView.Id)
                         {
-                            // TODO: Проиграть звук правильного соединения
+                            _shapesSoundService.PlayCorrectSound();
                             EnableShapeView(shapeView);
                             break;
                         }
@@ -152,7 +155,6 @@ namespace GGJam.Scripts.Coma.Shapes
             AddToInventory(secondShapeView, true);
             _playerSightView.FreePoint(firstId);
             _playerSightView.FreePoint(secondId);
-            // TODO: Проиграть звук неправильного соединения
         }
 
         private void EnableShapeView(ShapeView shapeView)

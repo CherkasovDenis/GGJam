@@ -8,6 +8,9 @@ namespace GGJam.Scripts
 	public class RootScope : LifetimeScope
 	{
 		[SerializeField]
+		private Texture2D _cursor;
+
+		[SerializeField]
 		private DialogService _dialogService;
 
 		[SerializeField]
@@ -22,6 +25,10 @@ namespace GGJam.Scripts
 			builder.Register<SceneService>(Lifetime.Singleton);
 
 			builder.Register<HellModel>(Lifetime.Singleton);
+
+#if !UNITY_WEBGL
+			Cursor.SetCursor(_cursor, Vector2.zero, CursorMode.Auto);
+#endif
 		}
 	}
 }

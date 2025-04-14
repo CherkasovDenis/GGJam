@@ -56,8 +56,6 @@ namespace GGJam.Childhood.OutDoor.Scripts
 		[Inject]
 		private readonly HellModel _hellModel;
 
-		private UniTaskCompletionSource _mainTask;
-
 		public async UniTask RunMiniGame()
 		{
 			await _dialogService.ShowDialog(0);
@@ -115,7 +113,9 @@ namespace GGJam.Childhood.OutDoor.Scripts
 			var cancel = new CancellationTokenSource();
 			try
 			{
-				await UniTask.WhenAny(HitTheDragon(), HitTheDragonCall(cancel.Token));
+				await UniTask.WhenAny(HitTheDragon(cancel.Token), HitTheDragonCall(cancel.Token));
+				cancel.Cancel();
+				cancel.Dispose();
 			}
 			catch (Exception _) { }
 
@@ -135,8 +135,6 @@ namespace GGJam.Childhood.OutDoor.Scripts
 				await NotKillDog();
 			}
 
-			// await _mainTask.Task;
-
 			async UniTask HitTheDragonCall(CancellationToken cancelToken)
 			{
 				await UniTask.WaitForSeconds(3, cancellationToken: cancelToken);
@@ -147,20 +145,21 @@ namespace GGJam.Childhood.OutDoor.Scripts
 				_dialogService.ShowDialog(24, true).Forget();
 				await UniTask.WaitForSeconds(3, cancellationToken: cancelToken);
 				_hellModel.SendToHell = false;
+				_dialogService.EnableNextButton();
 			}
 
-			async UniTask HitTheDragon()
+			async UniTask HitTheDragon(CancellationToken cancelToken)
 			{
-				_dialogService._nextButton.image.raycastTarget = false;
-				await dragon.OnClickAsync();
+				_dialogService.DisableNextButton();
+				await dragon.OnClickAsync(cancelToken);
 				cancel.Cancel();
 				cancel.Dispose();
 
 				_dialogService.HideWindow();
-				_dialogService._nextButton.image.raycastTarget = true;
+				_dialogService.EnableNextButton();
 				_hellModel.SendToHell = true;
 				dogHit.Play();
-				await UniTask.WaitForSeconds(.65f);
+				await UniTask.WaitForSeconds(.65f, cancellationToken: cancelToken);
 				dogHurt.Play();
 			}
 		}

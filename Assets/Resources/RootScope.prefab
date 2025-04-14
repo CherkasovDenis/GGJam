@@ -50,7 +50,9 @@ MonoBehaviour:
   parentReference:
     TypeName: 
   autoRun: 1
-  autoInjectGameObjects: []
+  autoInjectGameObjects:
+  - {fileID: 3516143015251629941}
+  _cursor: {fileID: 2800000, guid: 13acd1d622d6cc5409ab6d6b7dd8c6c0, type: 3}
   _dialogService: {fileID: 7271581248567223800}
   _chapterSwitchService: {fileID: 7632265405037613496}
 --- !u!1 &3033752451951567087
@@ -358,6 +360,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: e81d404ef6d5a1747af06202d6bc9fe4, type: 3}
+--- !u!1 &3516143015251629941 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7636099093360384852, guid: e81d404ef6d5a1747af06202d6bc9fe4, type: 3}
+  m_PrefabInstance: {fileID: 6427488633051597857}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &5333852872307829352 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1384470093160523337, guid: e81d404ef6d5a1747af06202d6bc9fe4, type: 3}
@@ -368,7 +375,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3519640251907956121, guid: e81d404ef6d5a1747af06202d6bc9fe4, type: 3}
   m_PrefabInstance: {fileID: 6427488633051597857}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 3516143015251629941}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4abd17508d2848c48483f9ced304a755, type: 3}
